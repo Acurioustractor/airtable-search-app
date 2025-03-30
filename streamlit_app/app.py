@@ -42,6 +42,13 @@ try:
         AIRTABLE_TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME")
         OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+    # Clean API keys to remove any potential whitespace or quotes
+    ANTHROPIC_API_KEY = ANTHROPIC_API_KEY.strip().strip('"').strip("'") if ANTHROPIC_API_KEY else None
+    AIRTABLE_API_KEY = AIRTABLE_API_KEY.strip().strip('"').strip("'") if AIRTABLE_API_KEY else None
+    AIRTABLE_BASE_ID = AIRTABLE_BASE_ID.strip().strip('"').strip("'") if AIRTABLE_BASE_ID else None
+    AIRTABLE_TABLE_NAME = AIRTABLE_TABLE_NAME.strip().strip('"').strip("'") if AIRTABLE_TABLE_NAME else None
+    OPENAI_API_KEY = OPENAI_API_KEY.strip().strip('"').strip("'") if OPENAI_API_KEY else None
+
     # Check if we have all the required credentials
     if not all([ANTHROPIC_API_KEY, AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME]):
         st.error("⚠️ Missing required API keys. Please check your environment variables or Streamlit secrets.")
@@ -65,9 +72,12 @@ except Exception as e:
 # Initialize Anthropic client
 try:
     st.info(f"Initializing Anthropic client")
+    
     # Print first and last few characters of the API key for debug (never expose the full key)
     api_key_preview = ANTHROPIC_API_KEY[:5] + "..." + ANTHROPIC_API_KEY[-5:] if ANTHROPIC_API_KEY else "None"
     st.info(f"API key (preview): {api_key_preview}")
+    
+    # Use the API key
     anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
     st.success("Successfully initialized Anthropic client")
 except Exception as e:
