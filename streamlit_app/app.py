@@ -23,29 +23,34 @@ env_path = os.path.join(os.path.dirname(__file__), '..', 'backend', '.env')
 if os.path.exists(env_path):
     load_dotenv(env_path)
 
-# Get credentials from environment variables or Streamlit secrets
+# Get credentials from environment variables or secrets
 try:
-    # Check if we're running in Streamlit Cloud with secrets
-    _ = st.secrets["ANTHROPIC_API_KEY"]
-    # If we get here, secrets exist, so use them
-    ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
-    AIRTABLE_API_KEY = st.secrets["AIRTABLE_API_KEY"]
-    AIRTABLE_BASE_ID = st.secrets["AIRTABLE_BASE_ID"]
-    AIRTABLE_TABLE_NAME = st.secrets["AIRTABLE_TABLE_NAME"]
-    OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
-    st.success("Using Streamlit Cloud secrets!")
-except (KeyError, FileNotFoundError):
-    # We're in local development, use environment variables
-    ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
-    AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY")
-    AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID")
-    AIRTABLE_TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME")
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-    st.info("Using local environment variables from .env file.")
+    # First try to get from Streamlit secrets (for cloud deployment)
+    if hasattr(st, "secrets") and "ANTHROPIC_API_KEY" in st.secrets:
+        st.info("Using Streamlit Cloud secrets!")
+        ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
+        AIRTABLE_API_KEY = st.secrets["AIRTABLE_API_KEY"]
+        AIRTABLE_BASE_ID = st.secrets["AIRTABLE_BASE_ID"]
+        AIRTABLE_TABLE_NAME = st.secrets["AIRTABLE_TABLE_NAME"]
+        OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+    else:
+        # Fall back to environment variables (for local development)
+        st.info("Using environment variables")
+        ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+        AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY")
+        AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID")
+        AIRTABLE_TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME")
+        OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Check API keys
-if not all([ANTHROPIC_API_KEY, AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME]):
-    st.error("One or more required API keys are missing. Please check your .env file.")
+    # Check if we have all the required credentials
+    if not all([ANTHROPIC_API_KEY, AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME]):
+        st.error("⚠️ Missing required API keys. Please check your environment variables or Streamlit secrets.")
+        st.info("For local development, create a .env file in the backend directory with the required keys.")
+        st.info("For Streamlit Cloud deployment, add the keys in the app's secrets management section.")
+        st.stop()
+
+except Exception as e:
+    st.error(f"Error loading credentials: {e}")
     st.stop()
 
 # Initialize Airtable API
