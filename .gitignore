@@ -1,0 +1,2 @@
+# Ignore secrets in version control
+streamlit_app/.streamlit/secrets.toml
