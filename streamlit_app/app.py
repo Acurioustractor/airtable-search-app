@@ -54,11 +54,25 @@ except Exception as e:
     st.stop()
 
 # Initialize Airtable API
-airtable_api = AirtableApi(AIRTABLE_API_KEY)
-airtable_table = airtable_api.table(AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME)
+try:
+    st.info(f"Initializing Airtable client for base {AIRTABLE_BASE_ID} and table {AIRTABLE_TABLE_NAME}")
+    airtable_api = AirtableApi(AIRTABLE_API_KEY)
+    airtable_table = airtable_api.table(AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME)
+except Exception as e:
+    st.error(f"Error initializing Airtable API: {e}")
+    st.stop()
 
 # Initialize Anthropic client
-anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+try:
+    st.info(f"Initializing Anthropic client")
+    # Print first and last few characters of the API key for debug (never expose the full key)
+    api_key_preview = ANTHROPIC_API_KEY[:5] + "..." + ANTHROPIC_API_KEY[-5:] if ANTHROPIC_API_KEY else "None"
+    st.info(f"API key (preview): {api_key_preview}")
+    anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    st.success("Successfully initialized Anthropic client")
+except Exception as e:
+    st.error(f"Error initializing Anthropic client: {e}")
+    st.stop()
 
 # Vector Search class (simplified from our previous implementation)
 class VectorSearch:
