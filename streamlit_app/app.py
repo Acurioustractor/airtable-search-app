@@ -77,11 +77,26 @@ try:
     api_key_preview = ANTHROPIC_API_KEY[:5] + "..." + ANTHROPIC_API_KEY[-5:] if ANTHROPIC_API_KEY else "None"
     st.info(f"API key (preview): {api_key_preview}")
     
-    # Use the API key
-    anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    # Check the anthropic version
+    st.info(f"Anthropic version: {anthropic.__version__}")
+    
+    # Use the API key with explicit parameters only (avoid auto-config that might include proxies)
+    try:
+        # First try with just the API key
+        anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    except TypeError as e:
+        if 'proxies' in str(e):
+            # If we get the proxies error, try importing the API client directly
+            from anthropic.api import Client
+            anthropic_client = Client(api_key=ANTHROPIC_API_KEY)
+            st.warning("Used alternative initialization method to avoid proxies error")
+        else:
+            raise
+    
     st.success("Successfully initialized Anthropic client")
 except Exception as e:
-    st.error(f"Error initializing Anthropic client: {e}")
+    st.error(f"Error initializing Anthropic client: {str(e)}")
+    st.error("Check that your ANTHROPIC_API_KEY is correct and try again.")
     st.stop()
 
 # Vector Search class (simplified from our previous implementation)
